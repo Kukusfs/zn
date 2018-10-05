@@ -1,16 +1,16 @@
 #!/bin/bash
 
 TMP_FOLDER=$(mktemp -d)
-CONFIG_FILE='bitcoingreen.conf'
-CONFIGFOLDER='/root/.bitcoingreen'
-COIN_DAEMON='bitcoingreend'
-COIN_CLI='bitcoingreen-cli'
+CONFIG_FILE='zenzo.conf'
+CONFIGFOLDER='/root/.zenzo'
+COIN_DAEMON='zenzod'
+COIN_CLI='zenzo-cli'
 COIN_PATH='/usr/local/bin/'
-COIN_TGZ='https://github.com/bitcoingreen/bitcoingreen/releases/download/v1.3.0/bitcoingreen-1.3.0-x86_64-linux-gnu.tar.gz'
+COIN_TGZ='https://github.com/Zenzo-Ecosystem/ZENZO-Core/releases/download/v1.0.0/zenzo-1.0.0-gnu64.zip'
 COIN_ZIP=$(echo $COIN_TGZ | awk -F'/' '{print $NF}')
-COIN_NAME='BitcoinGreen'
-COIN_PORT=9333
-RPC_PORT=9332
+COIN_NAME='Zenzo'
+COIN_PORT=26210
+RPC_PORT=26209
 
 NODEIP=$(curl -s4 api.ipify.org)
 
@@ -88,6 +88,9 @@ rpcallowip=127.0.0.1
 listen=1
 server=1
 daemon=1
+txindex=1
+staking=0
+enablezeromint=0
 port=$COIN_PORT
 EOF
 }
@@ -118,28 +121,21 @@ function update_config() {
   sed -i 's/daemon=1/daemon=0/' $CONFIGFOLDER/$CONFIG_FILE
   cat << EOF >> $CONFIGFOLDER/$CONFIG_FILE
 logintimestamps=1
-maxconnections=16
+maxconnections=256
 #bind=$NODEIP
 masternode=1
 externalip=$NODEIP:$COIN_PORT
 masternodeprivkey=$COINKEY
 
 #Nodes
-addnode=51.15.198.252
-addnode=51.15.206.123
-addnode=51.15.66.234
-addnode=51.15.86.224
-addnode=51.15.89.27
-addnode=51.15.57.193
-addnode=134.255.232.212
-addnode=185.239.238.237
-addnode=185.239.238.240
-addnode=134.255.232.212
-addnode=207.148.26.77
-addnode=207.148.19.239
-addnode=108.61.103.123
-addnode=185.239.238.89
-addnode=185.239.238.92
+addnode=80.211.138.180:26210
+addnode=45.76.42.236:26210
+addnode=45.76.184.133:26210
+addnode=95.179.200.83:26210
+addnode=45.76.117.67:26210
+addnode=80.240.31.194:26210
+addnode=45.77.4.175:26210
+addnode=83.220.170.227:26210
 EOF
 }
 
