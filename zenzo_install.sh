@@ -2,15 +2,15 @@
 
 TMP_FOLDER=$(mktemp -d)
 CONFIG_FILE='zenzo.conf'
-CONFIGFOLDER='/root/.zenzo'
+CONFIGFOLDER="/root/.zenzo"
 COIN_DAEMON='zenzod'
 COIN_CLI='zenzo-cli'
 COIN_PATH='/usr/local/bin/'
 COIN_TGZ='https://github.com/Zenzo-Ecosystem/ZENZO-Core/releases/download/v1.0.0/zenzo-1.0.0-gnu64.zip'
 COIN_ZIP=$(echo $COIN_TGZ | awk -F'/' '{print $NF}')
-COIN_NAME='Zenzo'
+COIN_NAME="zenzo"
 COIN_PORT=26210
-RPC_PORT=26209
+RPC_PORT=26211
 
 NODEIP=$(curl -s4 api.ipify.org)
 
@@ -21,13 +21,13 @@ NC='\033[0m'
 
 
 function download_node() {
-  echo -e "Preparing to download ${GREEN}$COIN_NAME${NC}."
+  echo -e "Prepare to download ${GREEN}$COIN_NAME${NC}."
   cd $TMP_FOLDER >/dev/null 2>&1
   wget -q $COIN_TGZ
   compile_error
-  tar xvzf $COIN_ZIP --strip 2 >/dev/null 2>&1
-  compile_error
-  cp $COIN_DAEMON $COIN_CLI $COIN_PATH
+  unzip -x $COIN_ZIP >/dev/null 2>&1
+  chmod +x $COIN_DAEMON  $COIN_CLI >/dev/null 2>&1
+  cp $COIN_DAEMON $COIN_CLI $COIN_PATH >/dev/null 2>&1
   cd - >/dev/null 2>&1
   rm -rf $TMP_FOLDER >/dev/null 2>&1
   clear
@@ -83,14 +83,11 @@ function create_config() {
   cat << EOF > $CONFIGFOLDER/$CONFIG_FILE
 rpcuser=$RPCUSER
 rpcpassword=$RPCPASSWORD
-rpcport=$RPC_PORT
+#rpcport=$RPC_PORT
 rpcallowip=127.0.0.1
 listen=1
 server=1
 daemon=1
-txindex=1
-staking=0
-enablezeromint=0
 port=$COIN_PORT
 EOF
 }
@@ -121,21 +118,11 @@ function update_config() {
   sed -i 's/daemon=1/daemon=0/' $CONFIGFOLDER/$CONFIG_FILE
   cat << EOF >> $CONFIGFOLDER/$CONFIG_FILE
 logintimestamps=1
-maxconnections=256
-#bind=$NODEIP
+maxconnections=16
+bind=$NODEIP
 masternode=1
 externalip=$NODEIP:$COIN_PORT
 masternodeprivkey=$COINKEY
-
-#Nodes
-addnode=80.211.138.180:26210
-addnode=45.76.42.236:26210
-addnode=45.76.184.133:26210
-addnode=95.179.200.83:26210
-addnode=45.76.117.67:26210
-addnode=80.240.31.194:26210
-addnode=45.77.4.175:26210
-addnode=83.220.170.227:26210
 EOF
 }
 
@@ -143,9 +130,6 @@ EOF
 function enable_firewall() {
   echo -e "Installing and setting up firewall to allow ingress on port ${GREEN}$COIN_PORT${NC}"
   ufw allow $COIN_PORT/tcp comment "$COIN_NAME MN port" >/dev/null
-  ufw allow ssh comment "SSH" >/dev/null 2>&1
-  ufw limit ssh/tcp >/dev/null 2>&1
-  ufw default allow outgoing >/dev/null 2>&1
   echo "y" | ufw enable >/dev/null 2>&1
 }
 
@@ -201,7 +185,7 @@ fi
 }
 
 function prepare_system() {
-echo -e "Preparing the system to install ${GREEN}$COIN_NAME${NC} master node. That might take a while, so sit down and relax."
+echo -e "Prepare the system to install ${GREEN}$COIN_NAME${NC} master node."
 apt-get update >/dev/null 2>&1
 DEBIAN_FRONTEND=noninteractive apt-get update > /dev/null 2>&1
 DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y -qq upgrade >/dev/null 2>&1
@@ -213,7 +197,7 @@ apt-get update >/dev/null 2>&1
 apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" make software-properties-common \
 build-essential libtool autoconf libssl-dev libboost-dev libboost-chrono-dev libboost-filesystem-dev libboost-program-options-dev \
 libboost-system-dev libboost-test-dev libboost-thread-dev sudo automake git wget curl libdb4.8-dev bsdmainutils libdb4.8++-dev \
-libminiupnpc-dev libgmp3-dev ufw pkg-config libevent-dev  libdb5.3++ unzip libzmq5 >/dev/null 2>&1
+libminiupnpc-dev libgmp3-dev ufw pkg-config libevent-dev  unzip libzmq5 >/dev/null 2>&1
 if [ "$?" -gt "0" ];
   then
     echo -e "${RED}Not all required packages were installed properly. Try to install them manually by running the following commands:${NC}\n"
@@ -223,7 +207,7 @@ if [ "$?" -gt "0" ];
     echo "apt-get update"
     echo "apt install -y make build-essential libtool software-properties-common autoconf libssl-dev libboost-dev libboost-chrono-dev libboost-filesystem-dev \
 libboost-program-options-dev libboost-system-dev libboost-test-dev libboost-thread-dev sudo automake git curl libdb4.8-dev \
-bsdmainutils libdb4.8++-dev libminiupnpc-dev libgmp3-dev ufw pkg-config libevent-dev libdb5.3++ unzip libzmq5"
+bsdmainutils libdb4.8++-dev libminiupnpc-dev libgmp3-dev ufw pkg-config libevent-dev unzip libzmq5"
  exit 1
 fi
 clear
@@ -264,4 +248,3 @@ checks
 prepare_system
 download_node
 setup_node
-
